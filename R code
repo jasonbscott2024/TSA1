@@ -1,0 +1,94 @@
+install.packages ("tidyverse")
+install.packages("TTR")
+
+library(tidyverse)
+library(TTR)
+library(ggplot2)
+
+#set working directory
+setwd(#adjust this for your own computer#)
+
+#read dataset into R
+airfaredf <- read.csv("airfare.csv")
+view(airfaredf)
+
+#(Step 1) create a time series plot
+ggplot(data = airfaredf, mapping = aes(x = Year, y = Airfare)) +
+  geom_line () +
+  geom_point() +
+  scale_x_continuous(breaks = seq(0, 15, by = 1)) + 
+  labs(title = "Airfare by Year", x = "Year", y = "Airfare")
+
+#Set up accuracy measures
+mae<-function(actual,pred){
+  mae <- mean(abs(actual-pred), na.rm=TRUE)
+  return (mae)
+}
+
+mse<-function(actual,pred){
+  mse <- mean((actual-pred)^2, na.rm=TRUE)
+  return (mse)
+}
+
+rmse<-function(actual,pred){
+  rmse <- sqrt(mean((actual-pred)^2, na.rm=TRUE))
+  return (rmse)
+}  
+
+mape<-function(actual,pred){
+  mape <- mean(abs((actual - pred)/actual), na.rm=TRUE)*100
+  return (mape)
+}
+
+#(Step 2) Simple moving forecast 2019 Using three previous years 
+#create a separate vector for avg airfare
+avg_airfare_actuals<-airfaredf$Airfare
+
+sma2019<-SMA (avg_airfare_actuals, n=3)
+sma2019
+
+#(Step 3) Based on the predicted values up to 2018, 
+#calculate accuracy measures (MAE, MSE, RMSE, and MAPE) for the simple moving average method.
+#use the simple moving average to forecast
+
+#Adjust vector of predicted values to align with avg_airfare_actuals vector by adding missing value and remove last
+sma_pred<-c(NA, sma2019[-length(sma2019)]) 
+sma_pred
+
+#Calculate accuracy measures with vector of actual values and vector of predicted values as inputs
+mae(avg_airfare_actuals, sma_pred)
+mse(avg_airfare_actuals, sma_pred)
+rmse(avg_airfare_actuals, sma_pred)
+mape(avg_airfare_actuals, sma_pred)
+
+#(Step 3) Based on the predicted values up to 2018, 
+#calculate accuracy measures (MAE, MSE, RMSE, and MAPE) for the simple moving average method.
+#use the naive method to forecast
+#naive13 <- c(NA, avg_airfare_actuals)
+#naive13
+
+#Adjust the vector of predicted values to align with the avg_airfare_actuals vector
+#Naive_pred <- naive13[-length(naive13)]
+
+#Calculate accuracy measures with vector of actual values and vector of predicted values as inputs
+#mae(avg_airfare_actuals, Naive_pred)
+#mse(avg_airfare_actuals, Naive_pred)
+#rmse(avg_airfare_actuals, Naive_pred)
+#mape(avg_airfare_actuals, Naive_pred)
+
+#(Step 4) EXPONENTIAL SMOOTHING USING 0.2 CONSTANT FOR 2019
+#exp1 <- EMA (avg_airfare_actuals, n=1, ratio = .2)
+exp1 <- EMA (avg_airfare_actuals, n=1, ratio = .8)
+#exp1
+exp1
+#Adjust vector of predicted values to align with avg_airfare_actuals vector by adding missing value and remove last
+exp_pred <- c(NA, exp1[-length(exp1)])
+exp_pred
+
+#Calculate accuracy measures with vector of actual values and vector
+#of predicted values as inputs
+mae(avg_airfare_actuals, exp_pred)
+mse(avg_airfare_actuals, exp_pred)
+rmse(avg_airfare_actuals, exp_pred)
+mape(avg_airfare_actuals, exp_pred)
+
